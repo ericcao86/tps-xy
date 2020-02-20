@@ -13,7 +13,7 @@ public class RequestDto implements IRequest {
 
     private Integer sampleRate =16;//采样率 8为8k，16为16k
 
-    private Integer isLast;//是否最后一包 1 是 0 否
+    private Integer islast;//是否最后一包 1 是 0 否
 
 
     public String getFrame() {
@@ -41,12 +41,12 @@ public class RequestDto implements IRequest {
         this.sampleRate = sampleRate;
     }
 
-    public Integer getIsLast() {
-        return isLast;
+    public Integer getIslast() {
+        return islast;
     }
 
-    public void setIsLast(Integer isLast) {
-        this.isLast = isLast;
+    public void setIslast(Integer islast) {
+        this.islast = islast;
     }
 
     @Override
