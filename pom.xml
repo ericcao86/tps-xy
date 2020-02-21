@@ -47,6 +47,7 @@
         <mapdb.version>3.0.3</mapdb.version>
         <aliyun.oss.version>2.6.1</aliyun.oss.version>
         <!--common utils-->
+        <tomcat.version>8.5.51</tomcat.version>
         <guava.version>21.0</guava.version>
         <okhttp.version>3.6.0</okhttp.version>
         <commons-lang3.version>3.5</commons-lang3.version>

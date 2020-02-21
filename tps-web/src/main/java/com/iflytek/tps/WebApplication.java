@@ -14,18 +14,10 @@ import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 
 @SpringBootApplication(exclude={DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
 @EnableScheduling
-@EnableAutoConfiguration(exclude = {MultipartAutoConfiguration.class})
 public class WebApplication {
     private static Logger logger = LoggerFactory.getLogger(WebApplication.class);
     public static void main(String args[]){
         SpringApplication.run(WebApplication.class,args);
     }
 
-    @Bean(name="multipartResolver")
-    public CommonsMultipartResolver multipartResolver(){
-        CommonsMultipartResolver resolver = new CommonsMultipartResolver();
-        resolver.setDefaultEncoding("UTF-8");
-        resolver.setMaxInMemorySize(-1);
-        return resolver;
-    }
 }

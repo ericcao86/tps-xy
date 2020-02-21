@@ -15,6 +15,15 @@ public class RequestDto implements IRequest {
 
     private Integer islast;//是否最后一包 1 是 0 否
 
+    private Integer idx;
+
+    public Integer getIdx() {
+        return idx;
+    }
+
+    public void setIdx(Integer idx) {
+        this.idx = idx;
+    }
 
     public String getFrame() {
         return frame;

@@ -27,37 +27,37 @@ public class IatService {
     @Value("${iat.url}")
     private String iatUrl;
 
-    @Value("${callback.url}")
+    @Value("${iat.callback.url}")
     private String callBackUrl;
 
-    private IatClient client;
+    private IatClient client =null;
     private IatSessionResponse iatSessionResponse;
     private IatSessionParam sessionParam;
 
 
     public Map<String,String> doConvert(RequestDto requestDto){
         Map<String,String> resMap = new HashMap<>();
-        if(null ==CommUtils.getSids().get("sid")){
+        logger.info("当前islast {},idx {},sid {}",requestDto.getIslast(),requestDto.getIdx(),requestDto.getSid());
+        if(client == null){
             logger.info("start to convert ..........");
             logger.info("请求参数request：{}",requestDto.toString());
             resMap.put(Commons.FLAG,Commons.SUCEESS_FLAG);
             String rate = "16k";
-             sessionParam = new IatSessionParam(requestDto.getSid(),rate);//创建参数
+            sessionParam = new IatSessionParam(requestDto.getSid(),rate);//创建参数
             logger.info("当前sessionParam 为 {}",sessionParam.toString());
-             client = new IatClient(iatUrl,sessionParam);
-             iatSessionResponse = new IatSessionResponseImpl(requestDto.getSid(),callBackUrl,requestDto.getIslast());
+            client = new IatClient(iatUrl,sessionParam);
+            iatSessionResponse = new IatSessionResponseImpl(requestDto.getSid(),callBackUrl,requestDto.getIslast());
             boolean ret = client.connect(iatSessionResponse);
             if(!ret){
                 logger.error("【连接异常】sid : {}", requestDto.getSid());
                 resMap.put(Commons.FLAG,Commons.ERROR_FLAG);
                 return resMap;
             }
-            CommUtils.getSids().put("sid",requestDto.getSid());
         }
 
         try {
             byte [] bytes = Base64.decodeBase64(requestDto.getFrame());
-            int z = 1028;//每次发送的字节数
+            int z = 1280;//每次发送的字节数
             //总长度
             int bylenth =bytes.length;
             //如果发送的字节小于1280，直接发送引擎
@@ -90,7 +90,7 @@ public class IatService {
             }
             if(requestDto.getIslast()==1){//最后一包
                 client.end();
-                CommUtils.getSids().clear();
+                client =null;
             }
             logger.info("sid"+requestDto.getSid() + "：音频数据发送完毕！等待结果返回...");
         }catch (Exception e){

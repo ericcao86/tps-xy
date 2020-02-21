@@ -6,6 +6,7 @@ public class CallBackRequest implements IRequest {
 
     private String sid;
     private String result;
+    private String callKey;
 
     public String getSid() {
         return sid;
@@ -21,6 +22,14 @@ public class CallBackRequest implements IRequest {
 
     public void setResult(String result) {
         this.result = result;
+    }
+
+    public String getCallKey() {
+        return callKey;
+    }
+
+    public void setCallKey(String callKey) {
+        this.callKey = callKey;
     }
 
     @Override

@@ -15,6 +15,7 @@ public class IatSessionResponseImpl implements IatSessionResponse {
     private String sid;//音频sid
     private Integer isLast;//采样率，8/16
     private String callBackUrl;//回调地址
+    private static final String LST_SPEECH_IFLY = "LST_SPEECH_IFLY";
 
     public IatSessionResponseImpl(String sid,String callBackUrl,Integer isLast){
         this.sid = sid;
@@ -30,7 +31,7 @@ public class IatSessionResponseImpl implements IatSessionResponse {
         logger.info("code:{}", iatSessionResult.getErrCode());
         logger.info("str:{}", iatSessionResult.getAnsStr());
         logger.info("flag:{}", iatSessionResult.isEndFlag());
-        String sentence = IatFormatSentence.formatSentence(iatSessionResult.getAnsStr());
+        String sentence = iatSessionResult.getAnsStr();
         logger.info("sentence:{}",sentence);
         Commons.IAT_RESULT.add(sentence);
         if(iatSessionResult.isEndFlag() || isLast == 1){//如果已经解析完成
@@ -65,6 +66,7 @@ public class IatSessionResponseImpl implements IatSessionResponse {
         CallBackRequest request = new CallBackRequest();
         request.setSid(sid);
         request.setResult(result);
+        request.setCallKey(LST_SPEECH_IFLY);
         HttpClientResult httpClientResult =null;
         try {
             httpClientResult = HttpClientUtils.doPost(callBackUrl,request);
