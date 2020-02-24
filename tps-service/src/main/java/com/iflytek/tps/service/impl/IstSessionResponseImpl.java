@@ -1,18 +1,15 @@
 package com.iflytek.tps.service.impl;
 
-import com.iflytek.tps.beans.common.Commons;
+
 import com.iflytek.tps.beans.transfer.IstSessionResponse;
 import com.iflytek.tps.beans.transfer.IstSessionResult;
 import com.iflytek.tps.foun.dto.HttpClientResult;
 import com.iflytek.tps.foun.util.HttpClientUtils;
 import com.iflytek.tps.service.request.CallBackRequest;
-import com.iflytek.tps.service.util.IstFormatSentence;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
 
 public class IstSessionResponseImpl implements IstSessionResponse {
 
@@ -20,10 +17,13 @@ public class IstSessionResponseImpl implements IstSessionResponse {
 
     private String sid; //音频id
     private String callBackUrl;//回调地址
+    private static final String LST_SPEECH_IFLY = "LST_SPEECH_IFLY";
+    private String islast;
 
-    public IstSessionResponseImpl(String sid,String callBackUrl){
+    public IstSessionResponseImpl(String sid,String callBackUrl,String islast){
         this.sid = sid;
         this.callBackUrl = callBackUrl;
+        this.islast = islast;
     }
 
 
@@ -33,37 +33,34 @@ public class IstSessionResponseImpl implements IstSessionResponse {
         logger.info("code:{}", istSessionResult.getErrCode());
         logger.info("str:{}", istSessionResult.getAnsStr());
         logger.info("flag:{}", istSessionResult.isEndFlag());
-        String sentence = IstFormatSentence.formatSentence(istSessionResult.getAnsStr());
+        String sentence = istSessionResult.getAnsStr();
         logger.info("sentence:{}",sentence);
-        if(istSessionResult.isEndFlag()){
-            StringBuffer buffer = new StringBuffer();
-            Commons.IAT_RESULT.stream().forEach(e->buffer.append(e));
-           String sidx =sid;
-           String res = buffer.toString();
-            logger.info("开始进行第一次回调接口发送,发送内容为 sid{},restult {}",sidx,res);
-            HttpClientResult result = doPost(sidx,res);//第一次发送
+        String end = (istSessionResult.isEndFlag())?"1":"0";
+        if(StringUtils.isNotBlank(sentence)){
+            logger.info("开始进行第一次回调接口发送,发送内容为 sid{},restult {}",sid,sentence);
+            HttpClientResult result = doPost(sid,sentence,end);//第一次发送
             logger.info("第一次调用结果："+result.toString());
             if(result.getCode() != 200){
-                logger.info("开始进行第二次回调接口发送,发送内容为 sid{},restult {}",sidx,res);
-                result = doPost(sidx,res);//第二次发送
+                logger.info("开始进行第二次回调接口发送,发送内容为 sid{},restult {}",sid,sentence);
+                result = doPost(sid,sentence,end);//第二次发送
                 logger.info("第二次调用结果："+result.toString());
                 if(result.getCode() != 200){
-                    logger.info("开始进行第三次回调接口发送,发送内容为 sid{},restult {}",sidx,res);
-                    result = doPost(sidx,res);//第三次发送，三次发送后无论结果如何，都不在发送
+                    logger.info("开始进行第三次回调接口发送,发送内容为 sid{},restult {}",sid,sentence);
+                    result = doPost(sid,sentence,end);//第三次发送，三次发送后无论结果如何，都不在发送
                     logger.info("第三次调用结果："+result.toString());
                 }
             }
-            Commons.IST_RESULT.clear();
-        }else{
-            Commons.IST_RESULT.add(sentence);
+
         }
 
     }
 
-    private HttpClientResult doPost(String sid, String result){
+    private HttpClientResult doPost(String sid, String result,String sentence){
         CallBackRequest request = new CallBackRequest();
+        request.setSentence(sentence);
         request.setSid(sid);
         request.setResult(result);
+        request.setCallKey(LST_SPEECH_IFLY);
         HttpClientResult httpClientResult =null;
         try {
             httpClientResult = HttpClientUtils.doPost(callBackUrl,request);

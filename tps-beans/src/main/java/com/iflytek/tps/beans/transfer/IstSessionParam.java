@@ -18,7 +18,7 @@ public class IstSessionParam {
     /**
      * json,plain 返回结果的格式,未传入默认json(含有时间等参数)，如果是plain则是结果字符串
      */
-    private String rst = "json";
+    private String rst = "plain";
 
     /**
      * utf8,gbk 转写结果的编码,未传入默认utf8

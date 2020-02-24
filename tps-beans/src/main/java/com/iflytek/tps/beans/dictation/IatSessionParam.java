@@ -18,7 +18,7 @@ public class IatSessionParam {
     /**
      * json,plain 返回结果的格式,未传入默认json
      */
-    private String rst = "plain";
+    private String rst = "json";
 
     /**
      * utf8,gbk 转写结果的编码,未传入默认utf8

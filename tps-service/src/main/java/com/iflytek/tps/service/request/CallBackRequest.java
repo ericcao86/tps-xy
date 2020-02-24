@@ -7,6 +7,7 @@ public class CallBackRequest implements IRequest {
     private String sid;
     private String result;
     private String callKey;
+    private String sentence;
 
     public String getSid() {
         return sid;
@@ -30,6 +31,14 @@ public class CallBackRequest implements IRequest {
 
     public void setCallKey(String callKey) {
         this.callKey = callKey;
+    }
+
+    public String getSentence() {
+        return sentence;
+    }
+
+    public void setSentence(String sentence) {
+        this.sentence = sentence;
     }
 
     @Override

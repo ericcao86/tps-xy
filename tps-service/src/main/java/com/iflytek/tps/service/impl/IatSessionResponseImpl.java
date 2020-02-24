@@ -31,10 +31,10 @@ public class IatSessionResponseImpl implements IatSessionResponse {
         logger.info("code:{}", iatSessionResult.getErrCode());
         logger.info("str:{}", iatSessionResult.getAnsStr());
         logger.info("flag:{}", iatSessionResult.isEndFlag());
-        String sentence = iatSessionResult.getAnsStr();
+        String sentence = IatFormatSentence.formatSentence(iatSessionResult.getAnsStr());
         logger.info("sentence:{}",sentence);
         Commons.IAT_RESULT.add(sentence);
-        if(iatSessionResult.isEndFlag() || isLast == 1){//如果已经解析完成
+        if(iatSessionResult.isEndFlag()){//如果已经解析完成
             StringBuffer buffer = new StringBuffer();
             Commons.IAT_RESULT.stream().forEach(e->buffer.append(e));
             String sidres = sid;
