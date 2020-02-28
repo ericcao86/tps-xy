@@ -31,7 +31,7 @@ public class IatSessionResponseImpl implements IatSessionResponse {
         logger.info("code:{}", iatSessionResult.getErrCode());
         logger.info("str:{}", iatSessionResult.getAnsStr());
         logger.info("flag:{}", iatSessionResult.isEndFlag());
-        String sentence = IatFormatSentence.formatSentence(iatSessionResult.getAnsStr());
+        String sentence = iatSessionResult.getAnsStr();
         logger.info("sentence:{}",sentence);
         Commons.IAT_RESULT.add(sentence);
         if(iatSessionResult.isEndFlag()){//如果已经解析完成
