@@ -74,9 +74,10 @@ public class IatSessionParam {
      * @param sid  会话id，必传
      * @param rate 音频采样率，必传
      */
-    public IatSessionParam(String sid, String rate) {
+    public IatSessionParam(String sid, String rate,String dwa) {
         this.sid = sid;
         this.rate = rate;
+        this.dwa = dwa;
     }
 
     public IatSessionParam(String sid, String aue, String rst, String rse, String eos, String dwa, String wbest, String wbestonlyper, String rate, String hotword, String samplesInfo) {

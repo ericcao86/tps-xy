@@ -6,9 +6,10 @@ import com.iflytek.tps.beans.dictation.IatSessionResult;
 import com.iflytek.tps.foun.dto.HttpClientResult;
 import com.iflytek.tps.foun.util.HttpClientUtils;
 import com.iflytek.tps.service.request.CallBackRequest;
-import com.iflytek.tps.service.util.IatFormatSentence;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 public class IatSessionResponseImpl implements IatSessionResponse {
 

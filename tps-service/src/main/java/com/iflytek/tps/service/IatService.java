@@ -3,16 +3,20 @@ package com.iflytek.tps.service;
  * 听写引擎service
  */
 
+import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iflytek.tps.beans.common.Commons;
 import com.iflytek.tps.beans.dictation.IatSessionParam;
 import com.iflytek.tps.beans.dictation.IatSessionResponse;
 import com.iflytek.tps.service.client.IatClient;
 import com.iflytek.tps.service.impl.IatSessionResponseImpl;
+import com.iflytek.tps.service.redis.RedisUtil;
 import com.iflytek.tps.service.request.RequestDto;
 import com.iflytek.tps.service.util.CommUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +34,9 @@ public class IatService {
     @Value("${iat.callback.url}")
     private String callBackUrl;
 
+    @Autowired
+    private RedisUtil redisUtil;
+
     private IatClient client =null;
     private IatSessionResponse iatSessionResponse;
     private IatSessionParam sessionParam;
@@ -38,12 +45,8 @@ public class IatService {
     public Map<String,String> doConvert(RequestDto requestDto){
         Map<String,String> resMap = new HashMap<>();
         logger.info("当前islast {},idx {},sid {}",requestDto.getIslast(),requestDto.getIdx(),requestDto.getSid());
-        if(client == null){
-            logger.info("start to convert ..........");
-            logger.info("请求参数request：{}",requestDto.toString());
-            resMap.put(Commons.FLAG,Commons.SUCEESS_FLAG);
-            String rate = "16k";
-            sessionParam = new IatSessionParam(requestDto.getSid(),rate);//创建参数
+        if(null == CommUtils.getSids().get(requestDto.getSid())){
+            sessionParam = new IatSessionParam(requestDto.getSid(),"16K","");//创建参数
             logger.info("当前sessionParam 为 {}",sessionParam.toString());
             client = new IatClient(iatUrl,sessionParam);
             iatSessionResponse = new IatSessionResponseImpl(requestDto.getSid(),callBackUrl,requestDto.getIslast());
@@ -53,14 +56,13 @@ public class IatService {
                 resMap.put(Commons.FLAG,Commons.ERROR_FLAG);
                 return resMap;
             }
+            CommUtils.getSids().put(requestDto.getSid(),requestDto);
         }
-
         try {
             byte [] bytes = Base64.decodeBase64(requestDto.getFrame());
             int z = 1280;//每次发送的字节数
             //总长度
             int bylenth =bytes.length;
-            //如果发送的字节小于1280，直接发送引擎
             if(bylenth <=z){
                 client.post(bytes);
             }else{
@@ -89,8 +91,9 @@ public class IatService {
                }
             }
             if(requestDto.getIslast()==1){//最后一包
+                logger.info("当前最后一包");
                 client.end();
-                client =null;
+                CommUtils.getSids().remove(requestDto.getSid());
             }
             logger.info("sid"+requestDto.getSid() + "：音频数据发送完毕！等待结果返回...");
         }catch (Exception e){

@@ -1,5 +1,7 @@
 package com.iflytek.tps.beans.dictation;
 
+import java.io.Serializable;
+
 /**
  * 听写引擎response
  */

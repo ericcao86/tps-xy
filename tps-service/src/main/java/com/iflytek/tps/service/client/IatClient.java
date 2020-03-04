@@ -14,10 +14,11 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class IatClient implements AutoCloseable{
+public class IatClient implements AutoCloseable {
 
     private final static Logger logger = LoggerFactory.getLogger(IatClient.class);
 
