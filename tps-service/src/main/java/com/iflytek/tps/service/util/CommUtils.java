@@ -4,13 +4,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class CommUtils {
 
-    private static ConcurrentHashMap sids = new ConcurrentHashMap();
+    private static ConcurrentHashMap<String,Object> sids = new ConcurrentHashMap();
 
-    public static ConcurrentHashMap getSids() {
+    public static ConcurrentHashMap<String, Object> getSids() {
         return sids;
     }
 
-    public static void setSids(ConcurrentHashMap sids) {
+    public static void setSids(ConcurrentHashMap<String, Object> sids) {
         CommUtils.sids = sids;
     }
 }

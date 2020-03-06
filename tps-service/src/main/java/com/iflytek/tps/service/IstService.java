@@ -2,23 +2,20 @@ package com.iflytek.tps.service;
 /**
  * 实时引擎service
  */
+
 import com.iflytek.tps.beans.common.Commons;
 import com.iflytek.tps.beans.transfer.IstSessionParam;
 import com.iflytek.tps.beans.transfer.IstSessionResponse;
-import com.iflytek.tps.foun.util.ByteUtils;
 import com.iflytek.tps.service.client.IstClient;
 import com.iflytek.tps.service.impl.IstSessionResponseImpl;
 import com.iflytek.tps.service.request.RequestDto;
+import com.iflytek.tps.service.util.CommUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,43 +29,44 @@ public class IstService {
     @Value("${ist.callback.url}")
     private String callBackUrl;
 
-    private IstClient client;
-    private IstSessionResponse istSessionResponse;
-    private IstSessionParam sessionParam;
-    private int i=0;
 
 
     public Map<String,String> doConvert(RequestDto requestDto){
         logger.info("当前sid {},idx {},islast {}",requestDto.getSid(),requestDto.getIdx(),requestDto.getIslast());
         Map<String,String> resMap = new HashMap<>();
         resMap.put(Commons.FLAG,Commons.SUCEESS_FLAG);
-        if(client == null){
-            sessionParam = new IstSessionParam(requestDto.getSid());
-            istSessionResponse = new IstSessionResponseImpl(requestDto.getSid(),callBackUrl,String.valueOf(requestDto.getIslast()));
+        if(null == CommUtils.getSids().get(requestDto.getSid())){
+            IstSessionParam sessionParam = new IstSessionParam(requestDto.getSid());
             sessionParam.setRate("16k");
             sessionParam.setDwa("");
-            client  = new IstClient(istUrl,sessionParam);
+            IstClient  client  = new IstClient(istUrl,sessionParam);
+            IstSessionResponse istSessionResponse = new IstSessionResponseImpl(requestDto.getSid(),callBackUrl,client);
             boolean ret = client.connect(istSessionResponse);
             if(!ret){
                 logger.error("【连接异常】sid : {}", requestDto.getSid());
                 resMap.put(Commons.FLAG,Commons.ERROR_FLAG);
             }
+            CommUtils.getSids().put(requestDto.getSid(),client);
+            doPost(client,requestDto);
+        }else{
+            IstClient istClient = (IstClient) CommUtils.getSids().get(requestDto.getSid());
+            doPost(istClient,requestDto);
         }
+
+        return resMap;
+    }
+
+    private void doPost(IstClient client,RequestDto requestDto){
         try {
             byte [] bytes = Base64.decodeBase64(requestDto.getFrame());
-            logger.info("当前idx{},接收字节：{}",requestDto.getIdx(),bytes.length);
-            logger.info("当前字节数 {}",i+=bytes.length);
             int z = 1280;//每次发送的字节数
             //总长度
             int bylenth =bytes.length;
-            //如果发送的字节小于1280，直接发送引擎
             if(bylenth <=z){
-                logger.info("当前字节数小于1280");
                 client.post(bytes);
             }else{
                 //如果是接收的字节数是1280的倍数，循环发送
                 if(bylenth % z == 0){
-                    logger.info("当前字节数是1280整数倍");
                     for(int j=0;j<bylenth;j+=z){
                         byte [] s2 = new byte[z];
                         System.arraycopy(bytes,j,s2,0,z);
@@ -76,7 +74,6 @@ public class IstService {
                     }
                 }else{
                     //如果不是整数倍
-                    logger.info("当前走非1280整数倍");
                     int n = bylenth/z;//倍数
                     int n1 = bylenth%z;//余数
                     for(int n2=0;n2<n*z;n2+=z){
@@ -93,19 +90,16 @@ public class IstService {
                 }
             }
             if(requestDto.getIslast()==1){//最后一包
+                logger.info("当前最后一包");
                 client.end();
-                client=null;
-                i=0;
+                CommUtils.getSids().remove(requestDto.getSid());
             }
             logger.info("sid"+requestDto.getSid() + "：音频数据发送完毕！等待结果返回...");
         }catch (Exception e){
             logger.error(e.getMessage(),e);
         }
-
-
-
-        return resMap;
     }
+
 
 
 

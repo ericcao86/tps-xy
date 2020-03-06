@@ -37,27 +37,32 @@ public class IatService {
     @Autowired
     private RedisUtil redisUtil;
 
-    private IatClient client =null;
-    private IatSessionResponse iatSessionResponse;
-    private IatSessionParam sessionParam;
-
 
     public Map<String,String> doConvert(RequestDto requestDto){
         Map<String,String> resMap = new HashMap<>();
         logger.info("当前islast {},idx {},sid {}",requestDto.getIslast(),requestDto.getIdx(),requestDto.getSid());
         if(null == CommUtils.getSids().get(requestDto.getSid())){
-            sessionParam = new IatSessionParam(requestDto.getSid(),"16K","");//创建参数
+            IatSessionParam  sessionParam = new IatSessionParam(requestDto.getSid(),"16K","");//创建参数
             logger.info("当前sessionParam 为 {}",sessionParam.toString());
-            client = new IatClient(iatUrl,sessionParam);
-            iatSessionResponse = new IatSessionResponseImpl(requestDto.getSid(),callBackUrl,requestDto.getIslast());
+            IatClient client = new IatClient(iatUrl,sessionParam);
+            IatSessionResponse iatSessionResponse = new IatSessionResponseImpl(requestDto.getSid(),callBackUrl,client);
             boolean ret = client.connect(iatSessionResponse);
             if(!ret){
                 logger.error("【连接异常】sid : {}", requestDto.getSid());
                 resMap.put(Commons.FLAG,Commons.ERROR_FLAG);
                 return resMap;
             }
-            CommUtils.getSids().put(requestDto.getSid(),requestDto);
+            CommUtils.getSids().put(requestDto.getSid(),client);
+            doPost(client,requestDto);
+        }else{
+            IatClient client1 = (IatClient) CommUtils.getSids().get(requestDto.getSid());
+            doPost(client1,requestDto);
         }
+        resMap.put(Commons.FLAG,Commons.SUCEESS_FLAG);
+        return resMap;
+    }
+
+    private void doPost(IatClient client,RequestDto requestDto){
         try {
             byte [] bytes = Base64.decodeBase64(requestDto.getFrame());
             int z = 1280;//每次发送的字节数
@@ -67,28 +72,28 @@ public class IatService {
                 client.post(bytes);
             }else{
                 //如果是接收的字节数是1280的倍数，循环发送
-               if(bylenth % z == 0){
-                for(int j=0;j<bylenth;j+=z){
-                    byte [] s2 = new byte[z];
-                    System.arraycopy(bytes,j,s2,0,z);
-                    client.post(s2);
+                if(bylenth % z == 0){
+                    for(int j=0;j<bylenth;j+=z){
+                        byte [] s2 = new byte[z];
+                        System.arraycopy(bytes,j,s2,0,z);
+                        client.post(s2);
+                    }
+                }else{
+                    //如果不是整数倍
+                    int n = bylenth/z;//倍数
+                    int n1 = bylenth%z;//余数
+                    for(int n2=0;n2<n*z;n2+=z){
+                        byte [] s3 = new byte[z];
+                        System.arraycopy(bytes,n2,s3,0,z);
+                        client.post(s3);
+
+                    }
+                    int start = bylenth - n*z;
+                    byte [] s4 = new byte[n1];
+                    System.arraycopy(bytes,start,s4,0,n1);
+                    client.post(s4);
+
                 }
-               }else{
-                   //如果不是整数倍
-                  int n = bylenth/z;//倍数
-                  int n1 = bylenth%z;//余数
-                   for(int n2=0;n2<n*z;n2+=z){
-                       byte [] s3 = new byte[z];
-                       System.arraycopy(bytes,n2,s3,0,z);
-                       client.post(s3);
-
-                   }
-                   int start = bylenth - n*z;
-                   byte [] s4 = new byte[n1];
-                   System.arraycopy(bytes,start,s4,0,n1);
-                   client.post(s4);
-
-               }
             }
             if(requestDto.getIslast()==1){//最后一包
                 logger.info("当前最后一包");
@@ -97,10 +102,8 @@ public class IatService {
             }
             logger.info("sid"+requestDto.getSid() + "：音频数据发送完毕！等待结果返回...");
         }catch (Exception e){
-           logger.error(e.getMessage(),e);
+            logger.error(e.getMessage(),e);
         }
-
-        return resMap;
     }
 
 }

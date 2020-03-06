@@ -5,8 +5,10 @@ import com.iflytek.tps.beans.dictation.IatSessionResponse;
 import com.iflytek.tps.beans.dictation.IatSessionResult;
 import com.iflytek.tps.foun.dto.HttpClientResult;
 import com.iflytek.tps.foun.util.HttpClientUtils;
+import com.iflytek.tps.service.client.IatClient;
 import com.iflytek.tps.service.request.CallBackRequest;
 
+import com.iflytek.tps.service.util.CommUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,11 +19,12 @@ public class IatSessionResponseImpl implements IatSessionResponse {
     private Integer isLast;//采样率，8/16
     private String callBackUrl;//回调地址
     private static final String LST_SPEECH_IFLY = "LST_SPEECH_IFLY";
+    private IatClient client;
 
-    public IatSessionResponseImpl(String sid,String callBackUrl,Integer isLast){
+    public IatSessionResponseImpl(String sid,String callBackUrl,IatClient client){
         this.sid = sid;
         this.callBackUrl =callBackUrl;
-        this.isLast = isLast;
+        this.client = client;
     }
 
     private Logger logger = LoggerFactory.getLogger(IatSessionResponseImpl.class);
@@ -34,6 +37,16 @@ public class IatSessionResponseImpl implements IatSessionResponse {
         logger.info("flag:{}", iatSessionResult.isEndFlag());
         String sentence = iatSessionResult.getAnsStr();
         logger.info("sentence:{}",sentence);
+        try {
+            if(iatSessionResult.getErrCode() == 30021){//会话超时
+                client.close();
+                CommUtils.getSids().remove(sid);
+                return;
+            }
+        }catch (Exception e){
+            logger.error("关闭引擎发生异常 {}",e.getMessage());
+        }
+
         Commons.IAT_RESULT.add(sentence);
         if(iatSessionResult.isEndFlag()){//如果已经解析完成
             StringBuffer buffer = new StringBuffer();

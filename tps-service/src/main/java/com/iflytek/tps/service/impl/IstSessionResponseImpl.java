@@ -5,7 +5,9 @@ import com.iflytek.tps.beans.transfer.IstSessionResponse;
 import com.iflytek.tps.beans.transfer.IstSessionResult;
 import com.iflytek.tps.foun.dto.HttpClientResult;
 import com.iflytek.tps.foun.util.HttpClientUtils;
+import com.iflytek.tps.service.client.IstClient;
 import com.iflytek.tps.service.request.CallBackRequest;
+import com.iflytek.tps.service.util.CommUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,12 +20,12 @@ public class IstSessionResponseImpl implements IstSessionResponse {
     private String sid; //音频id
     private String callBackUrl;//回调地址
     private static final String LST_SPEECH_IFLY = "LST_SPEECH_IFLY";
-    private String islast;
+    private IstClient client;
 
-    public IstSessionResponseImpl(String sid,String callBackUrl,String islast){
+    public IstSessionResponseImpl(String sid,String callBackUrl,IstClient client){
         this.sid = sid;
         this.callBackUrl = callBackUrl;
-        this.islast = islast;
+        this.client = client;
     }
 
 
@@ -34,7 +36,11 @@ public class IstSessionResponseImpl implements IstSessionResponse {
         logger.info("str:{}", istSessionResult.getAnsStr());
         logger.info("flag:{}", istSessionResult.isEndFlag());
         String sentence = istSessionResult.getAnsStr();
-        logger.info("sentence:{}",sentence);
+        if(istSessionResult.getErrCode() == 30021){
+          client.close();
+          CommUtils.getSids().remove(sid);
+          return;
+        }
         String end = (istSessionResult.isEndFlag())?"1":"0";
         if(StringUtils.isNotBlank(sentence)){
             logger.info("开始进行第一次回调接口发送,发送内容为 sid{},restult {}",sid,sentence);
