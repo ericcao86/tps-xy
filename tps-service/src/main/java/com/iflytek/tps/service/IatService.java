@@ -34,8 +34,8 @@ public class IatService {
     @Value("${iat.callback.url}")
     private String callBackUrl;
 
-    @Autowired
-    private RedisUtil redisUtil;
+    @Value("${callback.error.url}")
+    private String callBackErrorUrl;
 
 
     public Map<String,String> doConvert(RequestDto requestDto){
@@ -45,7 +45,7 @@ public class IatService {
             IatSessionParam  sessionParam = new IatSessionParam(requestDto.getSid(),"16K","");//创建参数
             logger.info("当前sessionParam 为 {}",sessionParam.toString());
             IatClient client = new IatClient(iatUrl,sessionParam);
-            IatSessionResponse iatSessionResponse = new IatSessionResponseImpl(requestDto.getSid(),callBackUrl,client);
+            IatSessionResponse iatSessionResponse = new IatSessionResponseImpl(requestDto.getSid(),callBackUrl,client,callBackErrorUrl);
             boolean ret = client.connect(iatSessionResponse);
             if(!ret){
                 logger.error("【连接异常】sid : {}", requestDto.getSid());

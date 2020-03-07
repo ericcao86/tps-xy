@@ -29,6 +29,9 @@ public class IstService {
     @Value("${ist.callback.url}")
     private String callBackUrl;
 
+    @Value("${callback.error.url}")
+    private String callBackErrorUrl;
+
 
 
     public Map<String,String> doConvert(RequestDto requestDto){
@@ -40,7 +43,7 @@ public class IstService {
             sessionParam.setRate("16k");
             sessionParam.setDwa("");
             IstClient  client  = new IstClient(istUrl,sessionParam);
-            IstSessionResponse istSessionResponse = new IstSessionResponseImpl(requestDto.getSid(),callBackUrl,client);
+            IstSessionResponse istSessionResponse = new IstSessionResponseImpl(requestDto.getSid(),callBackUrl,client,callBackErrorUrl);
             boolean ret = client.connect(istSessionResponse);
             if(!ret){
                 logger.error("【连接异常】sid : {}", requestDto.getSid());
