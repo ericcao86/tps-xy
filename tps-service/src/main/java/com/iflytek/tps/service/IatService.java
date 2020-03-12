@@ -3,20 +3,17 @@ package com.iflytek.tps.service;
  * 听写引擎service
  */
 
-import com.alibaba.fastjson.JSONObject;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 import com.iflytek.tps.beans.common.Commons;
 import com.iflytek.tps.beans.dictation.IatSessionParam;
 import com.iflytek.tps.beans.dictation.IatSessionResponse;
 import com.iflytek.tps.service.client.IatClient;
 import com.iflytek.tps.service.impl.IatSessionResponseImpl;
-import com.iflytek.tps.service.redis.RedisUtil;
 import com.iflytek.tps.service.request.RequestDto;
 import com.iflytek.tps.service.util.CommUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
